@@ -7,7 +7,8 @@ class Actions_With_Table(Enum):
     INSERT = 1
     UPDATE = 2
     DELETE = 3
-    NONE = 4
+    SELECT = 4
+    NONE = 5
 
 
 #Класс для взаимодействия с базой данных продуктовых магазинов
@@ -26,25 +27,29 @@ class Product_shop:
         choice = int(input())
         if choice == 1:
             self.__selectTable = "shop"
+            self.__selectActionMenu()
         elif choice == 2:
             self.__selectTable = "employee"
+            self.outputEmployee()
         elif choice == 3:
             self.__selectTable = "product"
+            self.topOfProduct()
         elif choice == 4:
             self.__selectTable = "orders"
+            self.getAverageCheckOnTime()
         elif choice == 5:
             self.__selectTable = "delivery"
+            self.deliveryInformation()
         elif choice == 6:
             exit()
         else:
             print("Несуществующий номер!")
             self.__selectTable = ""
-        self.__selectActionMenu()
 
     # меню, для выбора действия над выбранной таблицей
     def __selectActionMenu(self):
         print("\n1 - Добавить строку\n2 - Изменить строку\n3 - Удалить строку\n" +\
-               "Введите цифру: ", end = '')
+              "4 - Получить все строки\nВведите цифру: ", end = '')
 
         choice = int(input())
         if choice == 1:
@@ -53,6 +58,8 @@ class Product_shop:
             self.__choiceAction = Actions_With_Table.UPDATE
         elif choice == 3:
             self.__choiceAction = Actions_With_Table.DELETE
+        elif choice == 4:
+            self.__choiceAction = Actions_With_Table.SELECT
         else:
             print("Несуществующий номер!")
             self.__choiceAction = Actions_With_Table.NONE
@@ -112,3 +119,78 @@ class Product_shop:
             if self.__db.query_execute(db_query):
                 print("Магазин удален из базы данных!")
             self.selectTableMenu()
+
+        elif self.__choiceAction == Actions_With_Table.SELECT:
+            db_query = "SELECT * FROM shop"
+            shops = self.__db.query_select(db_query)
+            for shop in shops:
+                print(shop)
+            self.selectTableMenu()
+    
+    #функция для вывода сотрудников конкретного магазина
+    def outputEmployee(self):
+        print("\nВыберите ID магазина, сотрудников которого хотите посмотреть")
+        shops = self.__db.query_select("SELECT * FROM shop")
+        print("ID) Адрес")
+        for shop in shops:
+            print( str(shop[0]) + ") " + str(shop[2]) )
+        id_shop = int(input("Введите ID: "))
+        db_query = "SELECT E.full_name, E.phone, E.position, E.salary, S.address " +\
+	               "FROM Employee AS E JOIN Shop AS S ON S.id = E.id_shop " +\
+                   "WHERE S.id = " + str(id_shop)
+        print("\nСотрудники магазина №" + str(id_shop) + ": ")
+        employees = self.__db.query_select(db_query)
+        for employee in employees:
+            print(employee)
+        self.selectTableMenu()
+
+    #вывод информации о популярности товаров
+    def topOfProduct(self):
+        print("\nРейтинг популярности товаров, на основании сделанных заказов:")
+        db_query = "SELECT P.name, SUM(Link.qty) AS qty " +\
+                   "FROM Link_product_order AS Link " +\
+                   "JOIN Orders AS O ON O.id = Link.id_order " +\
+                   "JOIN Product AS P ON P.id = Link.id_product " +\
+                   "GROUP BY P.name ORDER BY qty DESC"
+        topProduct = self.__db.query_select(db_query)
+        print("\nНаименование товара\\Кол-во проданных штук")
+        for product in topProduct:
+            print(str(product[0]) + ' ' + str(product[1]))
+        self.selectTableMenu()
+
+    #функция вывода информации по доставке в конкретный магазин
+    def deliveryInformation(self):
+        print("\nВыберите ID магазина, сотрудников которого хотите посмотреть")
+        shops = self.__db.query_select("SELECT * FROM shop")
+        print("ID) Адрес")
+        for shop in shops:
+            print( str(shop[0]) + ") " + str(shop[2]) )
+        id_shop = int(input("Введите ID: "))
+        db_query = "SELECT P.name, (SUM(DISTINCT Link_D.qty)) AS qty " +\
+                   "FROM Link_product_delivery AS Link_D " +\
+                   "JOIN Product AS P ON P.id = Link_D.id_product " +\
+                   "JOIN Delivery AS D ON D.id = Link_D.id_delivery " +\
+                   "WHERE D.id_shop = " + str(id_shop) + ' ' +\
+                   "GROUP BY P.name ORDER BY qty"
+        print("\nИнформация о кол-ве продуктов, доставленных в магазин №" + str(id_shop) + ": ")
+        deliveries = self.__db.query_select(db_query)
+        for delivery in deliveries:
+            print(str(delivery[0]) + ' ' + str(int(delivery[1])))
+        self.selectTableMenu()
+
+    #функция нахождения среднего чека по магазина в опр. промежуток времени
+    def getAverageCheckOnTime(self):
+        print("\nНахождение стоимости среднего чека по магазинам в определенное время")
+        timeRange = input("Введите диапазон времени в часах в виде 'нач.час - кон.час': ")
+        timeRange = timeRange.split('-')
+        db_query = "SELECT S.id AS id_shop, S.address, SUM(Link.qty * P.price) / COUNT(*) AS AVG_SUM " +\
+                   "FROM Link_product_order AS Link " +\
+                   "JOIN Orders AS O ON O.id = Link.id_order " +\
+                   "JOIN Product AS P ON P.id = Link.id_product " +\
+                   "JOIN Shop AS S ON S.id = O.id_shop " +\
+                   "WHERE EXTRACT(HOUR FROM O.date_and_time) BETWEEN " + timeRange[0] + " AND " + timeRange[1] + " " +\
+                   "GROUP BY S.id ORDER BY AVG_SUM DESC"
+        results = self.__db.query_select(db_query)
+        for result in results:
+            print(str(result[:2]) + ' ' + str(int(result[2])))
+        self.selectTableMenu()
