@@ -1,0 +1,4 @@
+localhost
+root
+fsn703zu
+product_shop

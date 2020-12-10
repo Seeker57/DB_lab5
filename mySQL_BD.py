@@ -14,23 +14,31 @@ class MySQL_DB:
         except RuntimeError as rErr:
             print(rErr)
 
+    def close(self):
+        self.__connection.close()
+
     #запрос на изменение/добавление/удаление
     def query_execute(self, textQuery):
         try:
             self.__cursor.execute(textQuery)
             self.__connection.commit()
+            return True
         except pymysql.ProgrammingError as progErr:     # ошибки в названии таблиц итд
             print(progErr)
             self.__connection.rollback()
+            return False
         except pymysql.IntegrityError as intErr:        # нарушение целостности отношений
             print(intErr)
             self.__connection.rollback()
+            return False
         except pymysql.DataError as dErr:               # ошибки в данных
             print(dErr)
             self.__connection.rollback()
+            return False
         except pymysql.OperationalError as opErr:       # ошибка потеря соединения
             print(opErr)
             self.__connection.rollback()
+            return False
 
     #запрос на выборку
     def query_select(self, textSelect):
