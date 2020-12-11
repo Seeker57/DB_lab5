@@ -30,4 +30,7 @@
 
 ![5](screenshots/5.png)
 
+<div align="justify">Вывод указанного кол-во строк выбранной таблицы</div>
+
+![6](screenshots/6.png)
 ___

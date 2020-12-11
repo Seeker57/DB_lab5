@@ -10,5 +10,6 @@ if __name__ == "__main__":
 
     dateBase = MySQL_DB(host, username, password, name_DB)
     myProductShop = Product_shop(dateBase)
-    myProductShop.selectTableMenu()
+    #myProductShop.selectTableMenu()
+    myProductShop.readNLines()
     dateBase.close()

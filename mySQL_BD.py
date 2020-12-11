@@ -58,3 +58,23 @@ class MySQL_DB:
         except pymysql.OperationalError as opErr:
             print(opErr)
             return None
+
+    #функция-генератор для построчного чтения строк таблицы
+    def query_select_countStr(self, textSelect, count):
+        try:
+            self.__cursor.execute(textSelect)
+            for i in range(0, count):
+                yield self.__cursor.fetchone()
+        except pymysql.ProgrammingError as progErr:
+            print(progErr)
+            return None
+        except pymysql.IntegrityError as intErr:
+            print(intErr)
+            return None
+        except pymysql.DataError as dErr:
+            print(dErr)
+            return None
+        except pymysql.OperationalError as opErr:
+            print(opErr)
+            return None
+

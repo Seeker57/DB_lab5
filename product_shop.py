@@ -194,3 +194,32 @@ class Product_shop:
         for result in results:
             print(str(result[:2]) + ' ' + str(int(result[2])))
         self.selectTableMenu()
+    
+    #функция для вывода n строк указанной таблицы
+    def readNLines(self):
+        print("\n1 - Магазины\n2 - Сотрудники\n3 - Товары\n4 - Заказы\n" +\
+              "5 - Поставки\n6 - Выход\nВведите цирфу: ", end = '')
+
+        choice = int(input())
+        if choice == 1:
+            self.__selectTable = "shop"
+        elif choice == 2:
+            self.__selectTable = "employee"
+        elif choice == 3:
+            self.__selectTable = "product"
+        elif choice == 4:
+            self.__selectTable = "orders"
+        elif choice == 5:
+            self.__selectTable = "delivery"
+        elif choice == 6:
+            exit()
+        else:
+            print("Несуществующий номер!")
+            self.__selectTable = ""
+
+        count = int(input("Сколько строк хотите вывести: "))
+        db_query = "SELECT * FROM " + self.__selectTable + " LIMIT " + str(count)
+        results = self.__db.query_select_countStr(db_query, count)
+        for result in results:
+            print(result)
+
