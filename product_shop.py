@@ -220,13 +220,14 @@ class Product_shop:
 
         howStrAlreadyReads = 0
         howStrInTable = self.__db.query_select("SELECT COUNT(*) FROM " + self.__selectTable)
-        self.__db.query_execute("LOCK TABLES " + self.__selectTable + " READ; ")
+        self.__db.query_execute("START TRANSACTION")
         while howStrAlreadyReads < howStrInTable[0][0]:
             count = int(input("Сколько строк ещё хотите вывести: "))
-            results = self.__db.query_select(" SELECT * FROM " + self.__selectTable + " LIMIT " + str(howStrAlreadyReads) + ', ' + str(count) + "; ")
+            results = self.__db.query_select(" SELECT * FROM " + self.__selectTable +\
+            " ORDER BY " + self.__selectTable + ".id " + " LIMIT " + str(howStrAlreadyReads) + ', ' + str(count) + "; ")
 
             for result in results:
                 print(result)
             howStrAlreadyReads += count
-        self.__db.query_execute(" UNLOCK TABLES; ")
+        self.__db.query_execute("COMMIT")
 
