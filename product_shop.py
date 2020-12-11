@@ -1,5 +1,6 @@
 from mySQL_BD import MySQL_DB
 from enum import Enum
+from itertools import tee
 
 
 #Перечисление для хранения типа операции с таблицами БД
@@ -217,9 +218,14 @@ class Product_shop:
             print("Несуществующий номер!")
             self.__selectTable = ""
 
-        count = int(input("Сколько строк хотите вывести: "))
-        db_query = "SELECT * FROM " + self.__selectTable + " LIMIT " + str(count)
-        results = self.__db.query_select_countStr(db_query, count)
-        for result in results:
-            print(result)
+        db_query = "SELECT * FROM " + self.__selectTable
+        howStrAlreadyReads = 0
+        results = self.__db.query_select_countStr(db_query)
+        newResults = tee(results)
+        lenResults = len(list(newResults))
+        while howStrAlreadyReads <= lenResults:
+            count = int(input("Сколько строк ещё хотите вывести: "))
+            for i in range(0, count):
+                print(next(results))
+            howStrAlreadyReads += count
 

@@ -9,6 +9,7 @@ class MySQL_DB:
         try:
             self.__connection = pymysql.connect(host, username, password, name_DB)
             self.__cursor = self.__connection.cursor()
+            self.howStr = 0
         except pymysql.OperationalError as opErr:
             print(opErr)
         except RuntimeError as rErr:
@@ -60,10 +61,10 @@ class MySQL_DB:
             return None
 
     #функция-генератор для построчного чтения строк таблицы
-    def query_select_countStr(self, textSelect, count):
+    def query_select_countStr(self, textSelect):
         try:
-            self.__cursor.execute(textSelect)
-            for i in range(0, count):
+            self.howStr = self.__cursor.execute(textSelect)
+            for i in range(0, self.howStr):
                 yield self.__cursor.fetchone()
         except pymysql.ProgrammingError as progErr:
             print(progErr)
