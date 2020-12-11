@@ -61,10 +61,10 @@ class MySQL_DB:
             return None
 
     #функция-генератор для построчного чтения строк таблицы
-    def query_select_countStr(self, textSelect):
+    def query_select_countStr(self, textSelect, count):
         try:
             self.howStr = self.__cursor.execute(textSelect)
-            for i in range(0, self.howStr):
+            for i in range(0, count):
                 yield self.__cursor.fetchone()
         except pymysql.ProgrammingError as progErr:
             print(progErr)

@@ -218,14 +218,15 @@ class Product_shop:
             print("Несуществующий номер!")
             self.__selectTable = ""
 
-        db_query = "SELECT * FROM " + self.__selectTable
         howStrAlreadyReads = 0
-        results = self.__db.query_select_countStr(db_query)
-        newResults = tee(results)
-        lenResults = len(list(newResults))
-        while howStrAlreadyReads <= lenResults:
+        howStrInTable = self.__db.query_select("SELECT COUNT(*) FROM " + self.__selectTable)
+        self.__db.query_execute("LOCK TABLES " + self.__selectTable + " READ; ")
+        while howStrAlreadyReads < howStrInTable[0][0]:
             count = int(input("Сколько строк ещё хотите вывести: "))
-            for i in range(0, count):
-                print(next(results))
+            results = self.__db.query_select(" SELECT * FROM " + self.__selectTable + " LIMIT " + str(howStrAlreadyReads) + ', ' + str(count) + "; ")
+
+            for result in results:
+                print(result)
             howStrAlreadyReads += count
+        self.__db.query_execute(" UNLOCK TABLES; ")
 
