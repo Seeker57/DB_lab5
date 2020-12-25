@@ -261,8 +261,18 @@ class Product_shop:
             self.__window = tk.Tk()
             self.__window.title("Загрузка")
             self.__window.minsize(350, 50)
-            self.__window.rowconfigure(0, minsize=50, weight=1)
+            self.__window.rowconfigure([0, 1], minsize=50, weight=1)
             self.__window.columnconfigure(0, minsize=50, weight=1)
+
+            def cancel():
+                global stop
+                stop = False
+                self.__window.destroy()
+                self.__window = None
+                self.selectTableMenu()
+
+            buttomCancel = tk.Button(master=self.__window, text = 'Отменить', command=cancel)
+            buttomCancel.grid(row=1, column=0)
 
             while stop == True:
                 time.sleep(1/10)
