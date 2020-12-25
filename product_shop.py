@@ -3,7 +3,10 @@ from enum import Enum
 from itertools import tee
 from functools import partial
 from tkinter import messagebox
+from threading import Thread
 import tkinter as tk
+import random
+import time
 
 
 #Перечисление для хранения типа операции с таблицами БД
@@ -91,7 +94,6 @@ class Product_shop:
         self.__choiceAction = action
         if self.__selectTable == "shop":
             self.__shopTable()
-
 
     # ф-ция для генерирования запросов для таблицы Shop
     def __shopTable(self):
@@ -239,21 +241,60 @@ class Product_shop:
             self.__window.mainloop()
 
         elif self.__choiceAction == Actions_With_Table.SELECT:
-            db_query = "SELECT * FROM shop"
+            db_query = "SELECT *, sleep(3) FROM shop"
             res_query = ''
-            shops = self.__db.query_select(db_query)
-            for shop in shops:
+
+            global stop
+            stop = True
+            global res_shop
+            res_shop = None
+
+            def runQuery(db_query):
+                global stop
+                global res_shop
+                res_shop = self.__db.query_select(db_query)
+                stop = False
+
+            th = Thread(target=runQuery, args=(db_query,))
+            th.start()
+
+            self.__window = tk.Tk()
+            self.__window.title("Загрузка")
+            self.__window.minsize(350, 50)
+            self.__window.rowconfigure(0, minsize=50, weight=1)
+            self.__window.columnconfigure(0, minsize=50, weight=1)
+
+            while stop == True:
+                time.sleep(1/10)
+                colors = ['red', 'green', 'blue']
+                canvas = tk.Canvas(self.__window, width=100, height=100)
+                canvas.create_rectangle(
+                    20, 20, 80, 80,
+                    outline=random.sample(colors, 1)[0], fill=random.sample(colors, 1)[0]
+                )
+                canvas.grid(row=0, column=0)
+                self.__window.update_idletasks()
+                self.__window.update()
+            else:
+                if (self.__window != None):
+                    self.__window.destroy()
+
+            for shop in res_shop:
                 res_query += str(shop) + '\n'
 
             self.__window = tk.Tk()
             self.__window.title("Содержимое таблицы")
             self.__window.minsize(500, 200)
-            self.__window.rowconfigure([0, 1], minsize=50, weight=1)
+            self.__window.rowconfigure([0, 1, 2], minsize=50, weight=1)
             self.__window.columnconfigure(0, minsize=50, weight=1)
+            if stop == True:
+                buttonCancel = tk.Button(master=self.__window, text='Отмена', width=30)
+                buttonCancel.grid(row=2, column=0)
             lblRes = tk.Label(text=res_query, justify=tk.LEFT)
             button1 = tk.Button(master=self.__window, text='К главному меню', width=30, command=self.selectTableMenu)
             lblRes.grid(row=0, column=0)
             button1.grid(row=1, column=0)
+            self.__window.update()
             self.__window.mainloop()
     
     #функция для вывода сотрудников конкретного магазина

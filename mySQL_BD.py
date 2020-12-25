@@ -18,6 +18,9 @@ class MySQL_DB:
     def close(self):
         self.__connection.close()
 
+    def rollback(self):
+        self.__connection.rollback()
+
     #запрос на изменение/добавление/удаление
     def query_execute(self, textQuery):
         try:
@@ -40,6 +43,24 @@ class MySQL_DB:
             print(opErr)
             self.__connection.rollback()
             return False
+
+    def query_select_thread(self, textSelect, result):
+        try:
+            self.__cursor.execute(textSelect)
+            resultSelect = self.__cursor.fetchall()
+            result = resultSelect
+        except pymysql.ProgrammingError as progErr:
+            print(progErr)
+            result = None
+        except pymysql.IntegrityError as intErr:
+            print(intErr)
+            result = None
+        except pymysql.DataError as dErr:
+            print(dErr)
+            result = None
+        except pymysql.OperationalError as opErr:
+            print(opErr)
+            result = None
 
     #запрос на выборку
     def query_select(self, textSelect):
